@@ -31,5 +31,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "GenerativeAiSampleApp"
+rootProject.name = "NewsAISampleApp"
 include(":app")
