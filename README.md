@@ -1,6 +1,6 @@
 # Google Generative AI Sample App Enhancement: News Articles Feature
 
-This update introduces a new feature to the existing Google Generative AI Sample app. The "News Articles" section now displays a list of the latest editorials from The Hindu newspaper, sourced via an RSS feed. Users can view the full content of each article through web scraping and generate summaries using the Gemini "gemini-1.5-flash-latest" model. This enhancement offers a seamless way to stay informed with editorial content and quickly understand key points through AI-generated summaries.
+This update introduces a new feature to the existing Google Generative AI Sample app. The "News Articles" section now displays a list of the latest editorials from The Hindu newspaper, sourced via an RSS feed. Users can view the full content of each article through web scraping and generate summaries using the Gemini ```gemini-1.5-flash-latest``` model. This enhancement offers a seamless way to stay informed with editorial content and quickly understand key points through AI-generated summaries.
 
 ## Original Readme 
 [Google AI SDK for Android Github Link](https://github.com/google-gemini/generative-ai-android)
