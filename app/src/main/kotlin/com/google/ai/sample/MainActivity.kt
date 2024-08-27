@@ -62,7 +62,6 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("summarize") {
                             val data =  navController.previousBackStackEntry?.savedStateHandle?.get<Article>("data")
-                            Log.w("TAG", "onCreate:==========2> $data", )
                             SummarizeRoute(data=data)
                         }
                         composable("photo_reasoning") {
@@ -74,7 +73,6 @@ class MainActivity : ComponentActivity() {
                         composable("article_detail/{url}") { backStackEntry ->
                             val url =  backStackEntry.arguments?.getString("url")
                             ArticleDetailRoute(url = url){
-                                Log.w("TAG", "onCreate:==========1> $it", )
                                 navController.currentBackStackEntry?.savedStateHandle?.set("data", it)
                                 navController.navigate("summarize")
                             }
