@@ -26,7 +26,6 @@ class ArticleDetailViewModel(private val repo: Repo) : ViewModel() {
         viewModelScope.launch {
             repo.getArticleDetails(url!!) {
                 _article.value=it
-                Log.w("TAG", "getArticleDetail: ${it.data}", )
             }
         }
     }
