@@ -16,13 +16,24 @@
 
 package com.google.ai.sample.feature.text
 
+
+import android.content.Context
+import android.content.Context.PRINT_SERVICE
+import android.print.PrintAttributes
+import android.print.PrintManager
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.ai.client.generativeai.GenerativeModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.commonmark.parser.Parser
+import org.commonmark.renderer.html.HtmlRenderer
+
 
 class SummarizeViewModel(
     private val generativeModel: GenerativeModel
@@ -36,7 +47,15 @@ class SummarizeViewModel(
     fun summarize(inputText: String) {
         _uiState.value = SummarizeUiState.Loading
 
-        val prompt = "Summarize the following news article for me: $inputText"
+        val prompt =
+            "Summarize the editorial article from The Hindu newspaper with heading and bullet points, ensuring that the summary is concise and well-structured. The summary should include:\n" +
+                    "\n" +
+                    "Main Headline: A clear, concise title reflecting the central theme of the article.\n" +
+                    "Introduction: A brief overview of the editorial's key points in one or two sentences.\n" +
+                    "Key Arguments: key argument or point made in the editorial\n" +
+                    "Conclusion: A brief summary of the editorial's conclusion or the position it takes.\n" +
+                    "Ensure the summary contains facts provided in article and is objective and captures the essence of the editorial without any personal interpretation." +
+                    "\nNews Article:\n$inputText"
 
         viewModelScope.launch {
             // Non-streaming
@@ -51,10 +70,21 @@ class SummarizeViewModel(
         }
     }
 
-    fun summarizeStreaming(inputText: String) {
+    fun summarizeStreaming(inputText: String, isArticle: Boolean) {
         _uiState.value = SummarizeUiState.Loading
 
-        val prompt = "Summarize the following text for me: $inputText"
+
+        val prompt =
+            if (isArticle) "Summarize the editorial article from The Hindu newspaper with heading and bullet points, ensuring that the summary is concise and well-structured. The summary should include:\n" +
+                    "\n" +
+                    "Main Headline: A clear, concise title reflecting the central theme of the article.\n" +
+                    "Introduction: A brief overview of the editorial's key points in one or two sentences.\n" +
+                    "Key Arguments: key argument or point made in the editorial\n" +
+                    "Conclusion: A brief summary of the editorial's conclusion or the position it takes.\n" +
+                    "Ensure the summary contains facts provided in article and is objective and captures the essence of the editorial without any personal interpretation." +
+                    "\nNews Article:\n$inputText"
+            else
+                "Summarize the following text for me:  $inputText"
 
         viewModelScope.launch {
             try {
@@ -69,4 +99,59 @@ class SummarizeViewModel(
             }
         }
     }
+
+    private fun markdownToHtml(markdown: String): String {
+        val parser = Parser.builder().build()
+        val document = parser.parse(markdown)
+        val renderer = HtmlRenderer.builder().build()
+        val htmlContent = renderer.render(document)
+
+        // Add CSS for margins
+        return """
+        <html>
+            <head>
+                <style>
+                    body {
+                        margin: 40px; /* Adjust margin as needed */
+                        padding: 20px; /* Optional: Adjust padding as needed */
+                        font-family: Arial, sans-serif;
+                    }
+                </style>
+            </head>
+            <body>
+                $htmlContent
+            </body>
+        </html>
+    """.trimIndent()
+    }
+
+
+    fun printDocument(context: Context, markdown: String, title: String) {
+        val filename = sanitizeFileName(title)
+        viewModelScope.launch(Dispatchers.Main) {
+            WebView(context).apply {
+                webViewClient = WebViewClient()
+                loadData(markdownToHtml(markdown), "text/html", null)
+                (context.getSystemService(PRINT_SERVICE) as? PrintManager)?.let { printManager ->
+                    val printAdapter = createPrintDocumentAdapter(filename)
+                    printManager.print(
+                        filename,
+                        printAdapter,
+                        PrintAttributes.Builder().build()
+                    )
+                }
+            }
+
+        }
+
+    }
+
+    private fun sanitizeFileName(fileName: String): String {
+        // Define the regex pattern for invalid characters in file names
+        val invalidCharsPattern = "[\\/:*?\"<>|]"
+
+        // Replace invalid characters with an underscore
+        return fileName.replace(Regex(invalidCharsPattern), "_")
+    }
+
 }

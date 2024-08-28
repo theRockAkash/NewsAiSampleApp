@@ -16,67 +16,71 @@
 
 package com.google.ai.sample.feature.text
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.ai.sample.GenerativeViewModelFactory
 import com.google.ai.sample.R
 import com.google.ai.sample.models.Article
-import com.google.ai.sample.ui.theme.GenerativeAISample
+import dev.jeziellago.compose.markdowntext.MarkdownText
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun SummarizeRoute(
-    data:Article?,
+    data: Article?,
     summarizeViewModel: SummarizeViewModel = viewModel(factory = GenerativeViewModelFactory)
 ) {
-    val summarizeUiState by summarizeViewModel.uiState.collectAsState()
 
-    SummarizeScreen(data,summarizeUiState, onSummarizeClicked = { inputText ->
-        summarizeViewModel.summarizeStreaming(inputText)
+    SummarizeScreen(data, summarizeViewModel, onSummarizeClicked = { inputText ->
+        summarizeViewModel.summarizeStreaming(inputText,data!=null)
     })
 }
 
 @Composable
 fun SummarizeScreen(
-    data:Article?,
-    uiState: SummarizeUiState = SummarizeUiState.Loading,
+    data: Article?,
+    summarizeViewModel: SummarizeViewModel,
     onSummarizeClicked: (String) -> Unit = {}
 ) {
-    var textToSummarize by rememberSaveable { mutableStateOf("${data?.title?:""}\n${data?.subtitle?:""}\n${data?.bodyContent?:""}") }
+    var textToSummarize by rememberSaveable { mutableStateOf("${data?.title ?: ""}\n${data?.subtitle ?: ""}\n${data?.bodyContent ?: ""}") }
+    val uiState by summarizeViewModel.uiState.collectAsState()
+    val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+    LaunchedEffect(key1 = uiState) {
+        coroutineScope.launch {
+            scrollState.animateScrollTo(scrollState.maxValue)
+        }
+    }
+
 
     Column(
         modifier = Modifier
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
     ) {
         ElevatedCard(
             modifier = Modifier
@@ -95,7 +99,7 @@ fun SummarizeScreen(
             )
             TextButton(
                 onClick = {
-                    if (textToSummarize.isNotBlank()&&uiState!=SummarizeUiState.Loading) {
+                    if (textToSummarize.isNotBlank() && uiState != SummarizeUiState.Loading) {
                         onSummarizeClicked(textToSummarize)
                     }
                 },
@@ -103,10 +107,9 @@ fun SummarizeScreen(
                     .padding(end = 16.dp, bottom = 16.dp)
                     .align(Alignment.End)
             ) {
-                if(uiState==SummarizeUiState.Loading)
-                {
+                if (uiState == SummarizeUiState.Loading) {
                     CircularProgressIndicator()
-                }else{
+                } else {
                     Text(stringResource(R.string.action_go))
                 }
 
@@ -119,48 +122,59 @@ fun SummarizeScreen(
             }
 
             SummarizeUiState.Loading -> {
-              /*  Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .padding(all = 8.dp)
-                        .align(Alignment.CenterHorizontally)
-                ) {
-                    CircularProgressIndicator()
-                }*/
+                /*  Box(
+                      contentAlignment = Alignment.Center,
+                      modifier = Modifier
+                          .padding(all = 8.dp)
+                          .align(Alignment.CenterHorizontally)
+                  ) {
+                      CircularProgressIndicator()
+                  }*/
             }
 
             is SummarizeUiState.Success -> {
+                val context = LocalContext.current
                 Card(
                     modifier = Modifier
                         .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
                         .fillMaxWidth(),
                     shape = MaterialTheme.shapes.large,
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        containerColor = MaterialTheme.colorScheme.onSecondaryContainer,
                     )
                 ) {
-                    Row(
+                    Column(
                         modifier = Modifier
                             .padding(all = 16.dp)
                             .fillMaxWidth()
                     ) {
-                       /* Icon(
-                            Icons.Outlined.Person,
-                            contentDescription = "Person Icon",
-                            tint = MaterialTheme.colorScheme.onSecondary,
+
+                        MarkdownText(
+                            markdown = (uiState as SummarizeUiState.Success).outputText,
+                            style = TextStyle(color = MaterialTheme.colorScheme.onSecondary),
                             modifier = Modifier
-                                .requiredSize(36.dp)
-                                .drawBehind {
-                                    drawCircle(color = Color.White)
-                                }
-                        )*/
-                        Text(
-                            text = uiState.outputText, // TODO(thatfiredev): Figure out Markdown support
-                            color = MaterialTheme.colorScheme.onSecondary,
-                            modifier = Modifier
-                                .padding(start = 16.dp)
                                 .fillMaxWidth()
                         )
+
+                        TextButton(
+                            onClick = {
+                                if ((uiState as SummarizeUiState.Success).outputText.isNotBlank()) {
+                                    summarizeViewModel.printDocument(
+                                        context,
+                                        (uiState as SummarizeUiState.Success).outputText,
+                                        data?.title ?: "article_summary"
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .padding(end = 16.dp, bottom = 16.dp)
+                                .align(Alignment.End)
+                        ) {
+                            Text(
+                                stringResource(R.string.action_save_pdf),
+                                color = MaterialTheme.colorScheme.onSecondary
+                            )
+                        }
                     }
                 }
             }
@@ -176,7 +190,7 @@ fun SummarizeScreen(
                     )
                 ) {
                     Text(
-                        text = uiState.errorMessage,
+                        text = (uiState as SummarizeUiState.Error).errorMessage,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(all = 16.dp)
                     )
@@ -186,10 +200,3 @@ fun SummarizeScreen(
     }
 }
 
-@Composable
-@Preview(showSystemUi = true)
-fun SummarizeScreenPreview() {
-    GenerativeAISample(darkTheme = true) {
-        SummarizeScreen(null)
-    }
-}

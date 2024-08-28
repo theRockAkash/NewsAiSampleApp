@@ -48,7 +48,15 @@ android {
     sourceSets.getByName("samples") {
         java.setSrcDirs(listOf("src/main/java", "src/main/kotlin", "../../samples/src/main/java"))
     }
-
+    packagingOptions {
+        exclude("META-INF/LICENSE-LGPL-3.txt")
+        exclude("META-INF/LICENSE-W3C-TEST")
+        exclude("META-INF/LICENSE-LGPL-2.1.txt")
+        exclude("META-INF/LICENSE-GPL-2.txt")
+        exclude("META-INF/LICENSE-GPL-3.txt")
+        exclude("org/commonmark/internal/util/entities.properties")
+        // Add other exclusions as needed
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -110,7 +118,15 @@ dependencies {
     //Image loader
     implementation("io.coil-kt:coil-compose:2.5.0")
 
+    //MarkDown Text Composable
+    implementation("com.github.jeziellago:compose-markdown:0.5.3")
+
+    // Markdown to HTML conversion library
+    implementation("com.atlassian.commonmark:commonmark:0.13.0")
+
+
 }
 secrets {
     defaultPropertiesFileName = "local.properties"
 }
+
