@@ -16,6 +16,7 @@ data class Article(
     val subtitle: String,
     val bodyContent: String
 ): Serializable
+
 fun parseArticle(html: String): Article {
     val document = Jsoup.parse(html)
 

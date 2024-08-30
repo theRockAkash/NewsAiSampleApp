@@ -75,13 +75,15 @@ class SummarizeViewModel(
 
 
         val prompt =
-            if (isArticle) "Summarize the editorial article from The Hindu newspaper with heading and bullet points, ensuring that the summary is concise and well-structured. The summary should include:\n" +
+            if (isArticle) "Summarize the editorial article from The Hindu newspaper with heading and bullet points," +
+                    " ensuring that the summary is concise and well-structured. The summary should include:\n" +
                     "\n" +
                     "Main Headline: A clear, concise title reflecting the central theme of the article.\n" +
                     "Introduction: A brief overview of the editorial's key points in one or two sentences.\n" +
                     "Key Arguments: key argument or point made in the editorial\n" +
                     "Conclusion: A brief summary of the editorial's conclusion or the position it takes.\n" +
-                    "Ensure the summary contains facts provided in article and is objective and captures the essence of the editorial without any personal interpretation." +
+                    "Ensure the summary contains facts provided in article and is objective and captures the essence of the" +
+                    " editorial without any personal interpretation." +
                     "\nNews Article:\n$inputText"
             else
                 "Summarize the following text for me:  $inputText"
