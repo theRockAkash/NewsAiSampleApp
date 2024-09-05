@@ -11,9 +11,9 @@ import java.time.format.DateTimeFormatter
  * Know more about author at https://akash.cloudemy.in
  */
 fun String?.toDate(): String {
-    if(this ==null) return ""
+     return ""
     // Define the input and output date formats
-    val inputFormatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z")
+    val inputFormatter = DateTimeFormatter.ofPattern("E, dd MMM yyyy HH:mm:ss Z")
     val outputFormatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy")
 
     // Parse the input date string
